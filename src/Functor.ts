@@ -19,6 +19,9 @@ export abstract class Monad<T> {
    *      associativité : pout tout mx, f, g , mx.flatMap(f).flatMap(g) = mx.flatMap(x => f(x).flatMap(g) )
    */
 
+  /**
+   * Les fonctions suivantes découlent des autres fonctions
+   */
   static flatten<T>(level2: Monad<Monad<T>>): Monad<T> {
     return level2.flatMap((x) => x);
   }
@@ -42,6 +45,15 @@ export abstract class Monad<T> {
  * Inconvénients :
  *      performances à peu près équivalentes, légèrement plus lent
  *      beaucoup d'utilisation de la mémoire
+ *      propagation virale de la structure de donnée dans la base de code
  *
  * Implémentation TS : https://github.com/gcanti/fp-ts
+ *
+ * Exemples d'objets JS étant des monades :
+ * Array
+ * Promise
+ *
+ * Monades connues :
+ * Option<X> = [] (appelé None) ou [x] (appelé Some(x))
+ * Either<A, B> = [a, null] ou [null, b] (monade à 2 compartiments)
  */
