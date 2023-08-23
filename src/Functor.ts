@@ -8,8 +8,6 @@ export abstract class Functor<T> {
 }
 
 export abstract class Monad<T> {
-  map: <B>(f: (a: T) => B) => Monad<B>;
-
   static of: <T>(a: T) => Monad<T>; // constructor static
   flatMap: <B>(f: (item: T) => Monad<B>) => Monad<B>;
   /**
@@ -22,6 +20,9 @@ export abstract class Monad<T> {
   /**
    * Les fonctions suivantes découlent des autres fonctions
    */
+  map<B>(f: (item: T) => B): Monad<B> {
+    return this.flatMap((item) => Monad.of(f(item)));
+  }
   static flatten<T>(level2: Monad<Monad<T>>): Monad<T> {
     return level2.flatMap((x) => x);
   }
@@ -36,9 +37,56 @@ export abstract class Monad<T> {
       firstMonad.map((x) => [x])
     );
   }
+
+  /**
+   * Si on définit
+   */
+  static empty: <T>() => Monad<T>;
+  get: () => T | undefined;
+  /**
+   * Alors on a
+   */
+  filter(f: (item: T) => boolean): Monad<T> {
+    return this.flatMap((item) => (f(item) ? this : Monad.empty()));
+  }
+  find(f: (item: T) => boolean): T | undefined {
+    return this.filter(f).get();
+  }
 }
 
 /**
+ * Principales fonctions utiles :
+ *
+ * map(f: (item: A) => B) :
+ *
+ * |---|      |---|
+ * | A |      | B |
+ * |---|      |---|
+ *   |          ^
+ *   v          |
+ *   A --[f]--> B
+ *
+ *
+ *  * flatMap(f: (item: A) => Monad<B>) :
+ *
+ * |---|      |---|
+ * | A |      | B |
+ * |---|      |---|
+ *   |          ^
+ *   v          |
+ *   A --[f]----|
+ *
+ *
+ * filter(f: (item: A) => boolean) :
+ *
+ * |---|      |---|
+ * | A |      | A |
+ * |---|      |---|
+ *   |          ^
+ *   v          |
+ *   A --[f]--> ?  ---> empty
+ *
+ *
  * Avantages :
  *      fonctions pures => moins d'erreur
  *      composabilité
